@@ -72,3 +72,69 @@ python3 src/neo4j_adapter.py sync --uri $NEO4J_URI --password $NEO4J_PASSWORD
 ## License
 
 MIT - Based on @oswalpalash/ontology from ClawHub
+
+
+## Vertex AI GraphRAG
+
+Query your knowledge graph with semantic search powered by Vertex AI embeddings:
+
+```bash
+python3 src/vertex_graphrag.py \
+  --neo4j-uri neo4j+s://xxxxx.databases.neo4j.io \
+  --neo4j-password your-password \
+  --query "Alice" \
+  --vertex-project your-gcp-project
+```
+
+Features:
+- Multi-hop graph traversal (depth 1-3)
+- Semantic relevance ranking with embeddings
+- Subgraph context extraction
+- Vertex AI Gemini integration for content generation
+
+## Content Creator
+
+Generate structured content from your knowledge graph:
+
+```bash
+# Project status report
+python3 src/content_creator.py create \
+  --template project_report \
+  --subject "Website Redesign" \
+  --neo4j-uri ... --neo4j-password ... \
+  --output report.md
+
+# Meeting agenda
+python3 src/content_creator.py create \
+  --template meeting_agenda \
+  --subject "Team Sync" \
+  --neo4j-uri ... --neo4j-password ... \
+  --output agenda.md
+
+# List available templates
+python3 src/content_creator.py list-templates \
+  --neo4j-uri ... --neo4j-password ...
+```
+
+Available Templates:
+- `project_report` - Status report with tasks, blockers, owners
+- `task_plan` - Actionable plan with priorities and dependencies
+- `person_summary` - Professional profile from graph data
+- `meeting_agenda` - Agenda from Event + attendees + tasks
+- `knowledge_digest` - Weekly digest of new/changed entities
+- `onboarding_guide` - Team onboarding for new members
+- `custom` - Custom content with your own prompt
+
+## Unified CLI
+
+All tools accessible from one entry point:
+
+```bash
+python3 scripts/ontology_cli.py <command> [args]
+
+# Commands:
+ontology_cli.py ontology create --type Person --props '{"name":"Alice"}'
+ontology_cli.py neo4j sync --uri ... --password ...
+ontology_cli.py graphrag --neo4j-uri ... --query "Alice"
+ontology_cli.py content create --template project_report --subject "Website Redesign"
+```

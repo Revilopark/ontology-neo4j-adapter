@@ -1,2 +1,6 @@
 neo4j>=5.0
 pyyaml>=6.0
+# Optional: Vertex AI (uncomment if using Google Cloud)
+# google-cloud-aiplatform>=1.38.0
+# Optional: OpenAI fallback
+# openai>=1.0.0
