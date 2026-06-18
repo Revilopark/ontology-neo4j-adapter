@@ -1,0 +1,20 @@
+# GCP Project ID (required)
+project_id = "your-gcp-project-id"
+
+# GCP Region (optional, defaults to us-central1)
+# region = "us-central1"
+
+# GCP Zone (optional, defaults to us-central1-a)
+# zone = "us-central1-a"
+
+# Neo4j admin password (required, min 8 characters)
+neo4j_password = "your-secure-password-here"
+
+# Instance name (optional)
+# instance_name = "ontology-neo4j"
+
+# Machine type (optional, e2-medium = 2 vCPU, 4GB RAM)
+# machine_type = "e2-medium"
+
+# Disk size in GB (optional)
+# disk_size = 50

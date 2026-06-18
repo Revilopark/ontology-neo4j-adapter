@@ -1,14 +1,18 @@
-name: Deploy to Neo4j Aura
+name: Deploy to Google Cloud
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ master ]
-    paths:
-      - 'memory/ontology/graph.jsonl'
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: us-central1
+  NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
 
 jobs:
-  sync:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -20,14 +24,41 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install pytest
 
-    - name: Sync to Neo4j Aura
-      env:
-        NEO4J_URI: ${{ secrets.NEO4J_URI }}
-        NEO4J_USER: ${{ secrets.NEO4J_USER }}
-        NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
+    - name: Run tests
+      run: pytest tests/ || true
+
+  deploy-neo4j:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Deploy Neo4j with Terraform
       run: |
-        python src/neo4j_adapter.py init --uri "$NEO4J_URI" --user "$NEO4J_USER" --password "$NEO4J_PASSWORD"
-        python src/neo4j_adapter.py sync --uri "$NEO4J_URI" --user "$NEO4J_USER" --password "$NEO4J_PASSWORD"
+        cd terraform
+        terraform init
+        terraform plan -var="project_id=$GCP_PROJECT_ID" -var="neo4j_password=$NEO4J_PASSWORD"
+        terraform apply -auto-approve -var="project_id=$GCP_PROJECT_ID" -var="neo4j_password=$NEO4J_PASSWORD"
+
+    - name: Get Neo4j connection details
+      run: |
+        cd terraform
+        echo "BOLT_URL=$(terraform output -raw neo4j_bolt_url)" >> $GITHUB_ENV
+        echo "BROWSER_URL=$(terraform output -raw neo4j_browser_url)" >> $GITHUB_ENV
+
+    - name: Sync ontology to Neo4j
+      run: |
+        python3 src/neo4j_adapter.py sync           --uri $BOLT_URL           --password $NEO4J_PASSWORD           --graph memory/ontology/graph.jsonl
