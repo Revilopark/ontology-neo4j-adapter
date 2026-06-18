@@ -1,0 +1,17 @@
+# Environment
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Data
+memory/ontology/graph.jsonl
+!memory/ontology/.gitkeep
+
+# IDE
+.vscode/
+.idea/

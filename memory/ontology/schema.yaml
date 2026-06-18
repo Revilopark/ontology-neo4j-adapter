@@ -1,0 +1,37 @@
+types:
+  Task:
+    required: [title, status]
+    status_enum: [open, in_progress, blocked, done]
+
+  Event:
+    required: [title, start]
+    validate: "end >= start if end exists"
+
+  Credential:
+    required: [service, secret_ref]
+    forbidden_properties: [password, secret, token]
+
+  Person:
+    required: [name]
+
+  Project:
+    required: [name, status]
+
+relations:
+  has_owner:
+    from_types: [Project, Task]
+    to_types: [Person]
+    cardinality: many_to_one
+
+  blocks:
+    from_types: [Task]
+    to_types: [Task]
+    acyclic: true
+
+  has_task:
+    from_types: [Project]
+    to_types: [Task]
+
+  attends:
+    from_types: [Person]
+    to_types: [Event]
