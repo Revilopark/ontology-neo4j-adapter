@@ -1,0 +1,91 @@
+{
+  "project": "ontology-neo4j-adapter",
+  "version": "1.0.0",
+  "deployed_at": "2026-06-18T04:12:00Z",
+  "repository": "https://github.com/Revilopark/ontology-neo4j-adapter",
+  "components": {
+    "ontology_cli": {
+      "file": "scripts/ontology.py",
+      "size_bytes": 13541,
+      "description": "Core ontology entity/relation CRUD with validation"
+    },
+    "neo4j_adapter": {
+      "file": "src/neo4j_adapter.py",
+      "size_bytes": 12365,
+      "description": "Neo4j Aura sync with schema initialization"
+    },
+    "vertex_graphrag": {
+      "file": "src/vertex_graphrag.py",
+      "size_bytes": 15178,
+      "description": "Vertex AI GraphRAG with semantic search"
+    },
+    "content_creator": {
+      "file": "src/content_creator.py",
+      "size_bytes": 12356,
+      "description": "Content generation from knowledge graph"
+    },
+    "aura_api": {
+      "file": "scripts/aura_api.py",
+      "size_bytes": 6412,
+      "description": "Neo4j Aura API automation"
+    },
+    "unified_cli": {
+      "file": "scripts/ontology_cli.py",
+      "size_bytes": 2509,
+      "description": "Single entry point for all commands"
+    }
+  },
+  "data": {
+    "entities": 15,
+    "relations": 19,
+    "entity_types": [
+      "Person",
+      "Project",
+      "Task",
+      "Organization",
+      "Goal",
+      "Event",
+      "Document",
+      "Note",
+      "Device"
+    ],
+    "relation_types": [
+      "has_member",
+      "has_owner",
+      "has_task",
+      "blocks",
+      "has_goal",
+      "attends",
+      "has_project",
+      "for_project",
+      "hosts"
+    ]
+  },
+  "infrastructure": {
+    "terraform": {
+      "provider": "google",
+      "resources": [
+        "compute_instance",
+        "vpc_network",
+        "firewall_rules"
+      ],
+      "neo4j_version": "5.x"
+    },
+    "github_actions": {
+      "workflows": [
+        "ci.yml",
+        "deploy.yml"
+      ],
+      "triggers": [
+        "push",
+        "pull_request"
+      ]
+    }
+  },
+  "deployment_paths": {
+    "aura_free": "Create instance at console.neo4j.io \u2192 set NEO4J_URI + NEO4J_PASSWORD \u2192 run neo4j_adapter.py sync",
+    "aura_pro": "Use aura_api.py with AURA_CLIENT_ID + AURA_CLIENT_SECRET \u2192 auto-provision \u2192 sync",
+    "gcp_terraform": "cd terraform \u2192 cp terraform.tfvars.example terraform.tfvars \u2192 terraform init && terraform apply",
+    "vertex_ai": "Set GOOGLE_CLOUD_PROJECT \u2192 run vertex_graphrag.py for embeddings + content generation"
+  }
+}

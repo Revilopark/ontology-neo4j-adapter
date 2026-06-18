@@ -1,140 +1,95 @@
-# Ontology Neo4j Aura Adapter
+# Ontology Neo4j Aura Adapter — DEPLOYED ✅
 
-A typed vocabulary + constraint system for representing knowledge as a verifiable graph, 
-with Neo4j Aura deployment support.
+**Repository:** https://github.com/Revilopark/ontology-neo4j-adapter  
+**Status:** Live with sample data (15 entities, 19 relations)  
+**Version:** 1.0.0  
+**Deployed:** 2026-06-18
 
-Based on the ClawHub skill `@oswalpalash/ontology`.
+---
+
+## Quick Start
+
+```bash
+# 1. Clone
+git clone https://github.com/Revilopark/ontology-neo4j-adapter.git
+cd ontology-neo4j-adapter
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Set credentials (get from Neo4j Aura console)
+export NEO4J_URI="neo4j+s://xxxxx.databases.neo4j.io"
+export NEO4J_PASSWORD="your-password"
+
+# 4. Sync sample data to Neo4j Aura
+python3 src/neo4j_adapter.py init --uri $NEO4J_URI --password $NEO4J_PASSWORD
+python3 src/neo4j_adapter.py sync --uri $NEO4J_URI --password $NEO4J_PASSWORD
+
+# 5. Query with GraphRAG
+python3 src/vertex_graphrag.py --neo4j-uri $NEO4J_URI --neo4j-password $NEO4J_PASSWORD --query "Alice"
+
+# 6. Generate content
+python3 src/content_creator.py create --template project_report --subject "Neo4j Migration" \
+  --neo4j-uri $NEO4J_URI --neo4j-password $NEO4J_PASSWORD --output report.md
+```
 
 ## Architecture
 
 ```
-Ontology (Local JSONL)  -->  Neo4j Aura (Cloud Graph DB)
-     |                              |
-     v                              v
-  graph.jsonl                 Nodes + Relations
-  schema.yaml                 Constraints + Indexes
+Ontology CLI (Local JSONL) → Neo4j Adapter → Neo4j Aura (Cloud Graph)
+                                      ↓
+                              Vertex AI GraphRAG
+                                      ↓
+                              Content Creator
+                              (Reports/Plans/Agendas)
 ```
 
-## Quick Start
+## What's Included
 
-### 1. Install Dependencies
+| Component | File | Description |
+|-----------|------|-------------|
+| **Core Ontology** | `scripts/ontology.py` | Entity/relation CRUD, validation, schema |
+| **Neo4j Adapter** | `src/neo4j_adapter.py` | Sync to Neo4j Aura, query, stats |
+| **Vertex AI GraphRAG** | `src/vertex_graphrag.py` | Semantic search, multi-hop traversal |
+| **Content Creator** | `src/content_creator.py` | Generate reports, plans, agendas |
+| **Aura API** | `scripts/aura_api.py` | Programmatic instance management |
+| **Unified CLI** | `scripts/ontology_cli.py` | Single entry point |
+| **GCP Terraform** | `terraform/` | Deploy Neo4j CE on Google Compute Engine |
+| **GitHub Actions** | `.github/workflows/` | CI/CD automation |
 
-```bash
-pip install -r requirements.txt
-```
+## Sample Data
 
-### 2. Set Environment Variables
+The repository includes a validated knowledge graph with:
+- **15 entities**: 3 People, 2 Projects, 4 Tasks, 1 Organization, 1 Goal, 1 Event, 1 Document, 1 Note, 1 Device
+- **19 relations**: ownership, task assignments, dependencies, attendance, hosting
+- **Validation**: All constraints satisfied (no cycles, required fields present, no forbidden properties)
 
-```bash
-export NEO4J_URI="neo4j+s://xxxxx.databases.neo4j.io"
-export NEO4J_USER="neo4j"
-export NEO4J_PASSWORD="your-password"
-```
+## Content Templates
 
-### 3. Initialize Neo4j Schema
+- `project_report` — Status report with tasks, blockers, risks
+- `task_plan` — Actionable plan with priorities and dependencies
+- `person_summary` — Professional profile from graph data
+- `meeting_agenda` — Agenda from Event + attendees + tasks
+- `knowledge_digest` — Weekly digest of new/changed entities
+- `onboarding_guide` — Team onboarding for new members
+- `custom` — Any content with your own prompt
 
-```bash
-python3 src/neo4j_adapter.py init --uri $NEO4J_URI --password $NEO4J_PASSWORD
-```
+## Deployment Options
 
-### 4. Create Local Ontology Entities
+| Option | Cost | Setup | Best For |
+|--------|------|-------|----------|
+| **Aura Free** | $0 | Web console, 2 min | Testing, prototyping |
+| **Aura Professional** | ~$65/mo | API or Marketplace | Production, team use |
+| **GCP Self-Managed** | VM cost | Terraform | Full control, custom specs |
 
-```bash
-python3 scripts/ontology.py create --type Person --props '{"name":"Alice","email":"alice@example.com"}'
-python3 scripts/ontology.py create --type Project --props '{"name":"Website Redesign","status":"active"}'
-python3 scripts/ontology.py relate --from proj_xxx --rel has_owner --to p_xxx
-```
+## Documentation
 
-### 5. Sync to Neo4j Aura
-
-```bash
-python3 src/neo4j_adapter.py sync --uri $NEO4J_URI --password $NEO4J_PASSWORD
-```
-
-## Core Types
-
-- **Person**: name, email?, phone?, notes?
-- **Organization**: name, type?, members[]
-- **Project**: name, status, goals[], owner?
-- **Task**: title, status, due?, priority?, assignee?, blockers[]
-- **Event**: title, start, end?, location?, attendees[], recurrence?
-- **Document**: title, path?, url?, summary?
-- **Note**: content, tags[], refs[]
-- **Credential**: service, secret_ref (forbidden: password, secret, token)
-
-## Neo4j Aura Optimizations
-
-- Connection pool lifetime < 300s (Aura requirement)
-- Encrypted Bolt protocol (neo4j+s://)
-- Automatic schema constraints (unique IDs, type indexes)
-- Batch sync from JSONL to Neo4j
+- `DEPLOYMENT_GUIDE.md` — Full deployment instructions
+- `GCP_DEPLOYMENT.md` — Google Cloud specific setup
+- `DEPLOYMENT_MANIFEST.json` — Machine-readable deployment spec
+- `examples/workflow.sh` — Complete workflow example
+- `examples/sample_report.md` — Sample generated content
 
 ## License
 
-MIT - Based on @oswalpalash/ontology from ClawHub
-
-
-## Vertex AI GraphRAG
-
-Query your knowledge graph with semantic search powered by Vertex AI embeddings:
-
-```bash
-python3 src/vertex_graphrag.py \
-  --neo4j-uri neo4j+s://xxxxx.databases.neo4j.io \
-  --neo4j-password your-password \
-  --query "Alice" \
-  --vertex-project your-gcp-project
-```
-
-Features:
-- Multi-hop graph traversal (depth 1-3)
-- Semantic relevance ranking with embeddings
-- Subgraph context extraction
-- Vertex AI Gemini integration for content generation
-
-## Content Creator
-
-Generate structured content from your knowledge graph:
-
-```bash
-# Project status report
-python3 src/content_creator.py create \
-  --template project_report \
-  --subject "Website Redesign" \
-  --neo4j-uri ... --neo4j-password ... \
-  --output report.md
-
-# Meeting agenda
-python3 src/content_creator.py create \
-  --template meeting_agenda \
-  --subject "Team Sync" \
-  --neo4j-uri ... --neo4j-password ... \
-  --output agenda.md
-
-# List available templates
-python3 src/content_creator.py list-templates \
-  --neo4j-uri ... --neo4j-password ...
-```
-
-Available Templates:
-- `project_report` - Status report with tasks, blockers, owners
-- `task_plan` - Actionable plan with priorities and dependencies
-- `person_summary` - Professional profile from graph data
-- `meeting_agenda` - Agenda from Event + attendees + tasks
-- `knowledge_digest` - Weekly digest of new/changed entities
-- `onboarding_guide` - Team onboarding for new members
-- `custom` - Custom content with your own prompt
-
-## Unified CLI
-
-All tools accessible from one entry point:
-
-```bash
-python3 scripts/ontology_cli.py <command> [args]
-
-# Commands:
-ontology_cli.py ontology create --type Person --props '{"name":"Alice"}'
-ontology_cli.py neo4j sync --uri ... --password ...
-ontology_cli.py graphrag --neo4j-uri ... --query "Alice"
-ontology_cli.py content create --template project_report --subject "Website Redesign"
-```
+MIT — Based on @oswalpalash/ontology from ClawHub
