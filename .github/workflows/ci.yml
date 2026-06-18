@@ -1,0 +1,29 @@
+name: CI - Test Ontology Adapter
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Test ontology CLI
+      run: |
+        python scripts/ontology.py create --type Person --props '{"name":"Test"}' --id test_001
+        python scripts/ontology.py list --type Person
+        python scripts/ontology.py validate

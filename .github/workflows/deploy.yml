@@ -1,0 +1,33 @@
+name: Deploy to Neo4j Aura
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+    paths:
+      - 'memory/ontology/graph.jsonl'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Sync to Neo4j Aura
+      env:
+        NEO4J_URI: ${{ secrets.NEO4J_URI }}
+        NEO4J_USER: ${{ secrets.NEO4J_USER }}
+        NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
+      run: |
+        python src/neo4j_adapter.py init --uri "$NEO4J_URI" --user "$NEO4J_USER" --password "$NEO4J_PASSWORD"
+        python src/neo4j_adapter.py sync --uri "$NEO4J_URI" --user "$NEO4J_USER" --password "$NEO4J_PASSWORD"
